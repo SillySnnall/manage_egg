@@ -16,7 +16,10 @@ class TestC extends Controller {
         // } catch (error) {
         //     this.ctx.body = error
         // }
-        this.ctx.body = Date.now()
+        this.ctx.body = {
+            uuid: Util.uuidCode(),
+            time: Date.now()
+        }
         // const creatuuid = uuid.v1()
         // uuid.v1().split('-').join("") + Date.now()
         // const results = await this.app.mysql.get('customer', {

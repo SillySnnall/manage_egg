@@ -416,6 +416,54 @@ class OrderS extends Service {
         this.ctx.coreLogger.info('[登录用户]:' + userCode + '[OrderS.stateChange]:' + 'state:' + data.state + 'code:' + data.code);
         return BodyData.successData("状态更改成功");
     }
+
+    // 获取打印订单数据
+    async getPrintOrders(data, userCode) {
+        // 空判断
+        if (data.code == null || data.code === "") {
+            return BodyData.failData("订单编码为空");
+        }
+        // 获取订单
+        const orders = await this.app.mysql.get('orders', {
+            code: data.code
+        });
+        // 获取客户
+        const customer = await this.app.mysql.get('customer', {
+            code: orders.customer_code
+        });
+
+        orders.phone = customer.phone
+
+        // 获取订单条目
+        const orderItemList = await this.app.mysql.select('order_item', {
+            where: {
+                order_code: data.code
+            } // WHERE 条件
+        });
+        for (var i = 0; i < orderItemList.length; i++) {
+            // 获取商品
+            const commodity = await this.app.mysql.get('commodity', {
+                code: orderItemList[i].commodity_code
+            });
+            orderItemList[i].weight = commodity.weight
+        }
+
+        orders.orderItemList = orderItemList
+
+        // 获取公司信息
+        const company = await this.app.mysql.get('company', {
+            id: 1
+        });
+
+        this.ctx.coreLogger.info('[登录用户]:' + userCode + '[OrderS.getPrintOrders]:' + JSON.stringify({
+            company: company,
+            orders: orders
+        }));
+        return BodyData.successData({
+            company: company,
+            orders: orders
+        });
+    }
 }
 
 module.exports = OrderS;

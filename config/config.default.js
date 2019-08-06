@@ -11,7 +11,9 @@ module.exports = appInfo => {
    * @type {Egg.EggAppConfig}
    **/
   const config = exports = {
+    // 阿里云node监控
     alinode: {
+      enable: true, // 上线时开启
       appid: '81048',
       secret: '5c4fc9372dbb0790af973ec25fa2cd1a432679ef',
     },
@@ -19,8 +21,8 @@ module.exports = appInfo => {
     cluster: {
       listen: {
         port: 80,
-        hostname: '127.0.0.1',
-        // hostname: '0.0.0.0',
+        // hostname: '127.0.0.1',// 本地地址
+        hostname: '0.0.0.0',// 服务器地址
         // path: '/var/run/egg.sock',
       }
     },
