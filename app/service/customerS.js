@@ -64,10 +64,6 @@ class CustomerS extends Service {
           customer_code: data.code
         }
       });
-      // 判断是否修改成功
-      if (result.affectedRows == 0) {
-        throw "更新订单中的商店名失败"
-      }
       await conn.commit(); // 提交事务
       // 删除返回数据中的id字段
       delete customer.id

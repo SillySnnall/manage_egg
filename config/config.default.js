@@ -21,7 +21,6 @@ module.exports = appInfo => {
     cluster: {
       listen: {
         port: 80,
-        // hostname: '127.0.0.1',// 本地地址
         hostname: '0.0.0.0',// 服务器地址
         // path: '/var/run/egg.sock',
       }

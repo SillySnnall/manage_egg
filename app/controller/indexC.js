@@ -19,7 +19,8 @@ class IndexC extends Controller {
       return
     }
     // 解密
-    const data = JSON.parse(Des.decrypt(signs, Config.key));
+    const decrypt = Des.decrypt(signs, Config.key)
+    const data = JSON.parse(decrypt);
     // const data = JSON.parse(signs);
     // 选择处理的业务
     const backData = await this.acSwitch(data, userCode)

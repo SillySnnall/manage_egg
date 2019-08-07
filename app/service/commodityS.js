@@ -137,10 +137,6 @@ class CommodityS extends Service {
           commodity_code: data.code
         }
       });
-      // 判断是否修改成功
-      if (result.affectedRows == 0) {
-        throw "更新订单条目中的商品名失败"
-      }
       await conn.commit(); // 提交事务
       // 删除返回数据中的id字段
       delete commodity.id
