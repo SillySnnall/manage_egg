@@ -175,19 +175,19 @@ class CommodityS extends Service {
   async find(data, userCode) {
     // 组合查询数据
     var commodityList = []
-    const offset = data.offset * data.limit
+    const offset = Number(data.offset) * Number(data.limit)
     if (data.searchText == null || data.searchText == '') {
       commodityList = await this.app.mysql.select('commodity', { // 搜索 post 表
         orders: [
           ['create_time', 'desc']
         ], // 排序方式
-        offset: offset, // 数据偏移量
-        limit: data.limit // 返回数据量
+        offset: Number(offset), // 数据偏移量
+        limit: Number(data.limit) // 返回数据量
       });
     } else {
       // 条件，模糊，排序 查询
       commodityList = await this.app.mysql.query(
-        "select * from commodity where " + data.searchType + " like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + offset + "," + data.limit
+        "select * from commodity where " + data.searchType + " like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
       )
     }
     this.ctx.coreLogger.info('[登录用户]:' + userCode + '[CommodityS.find]:' + JSON.stringify(commodityList));

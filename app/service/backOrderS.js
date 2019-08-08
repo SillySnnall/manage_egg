@@ -324,7 +324,7 @@ class BackOrderS extends Service {
         // 组合查询数据
         var orderList = []
         const state = Number(data.searchType)
-        const offset = data.offset * data.limit
+        const offset = Number(data.offset) * Number(data.limit)
         if (data.searchText == null || data.searchText == '') {
             var whereData = {}
             if (state != -1) {
@@ -337,8 +337,8 @@ class BackOrderS extends Service {
                 orders: [
                     ['create_time', 'desc']
                 ], // 排序方式
-                offset: offset, // 数据偏移量
-                limit: data.limit // 返回数据量
+                offset: Number(offset), // 数据偏移量
+                limit: Number(data.limit) // 返回数据量
             });
         } else {
             var stateData = ""
@@ -347,7 +347,7 @@ class BackOrderS extends Service {
             }
             //  条件，模糊，排序 查询
             orderList = await this.app.mysql.query(
-                "select * from back_orders where " + stateData + "shop like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + offset + "," + data.limit
+                "select * from back_orders where " + stateData + "shop like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
             )
         }
         this.ctx.coreLogger.info('[登录用户]:' + userCode + '[BackOrderS.find]:' + JSON.stringify(orderList));
