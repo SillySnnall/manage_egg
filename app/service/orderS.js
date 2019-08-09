@@ -58,6 +58,12 @@ class OrderS extends Service {
                 if (data.orderItemList[i].num == null || data.orderItemList[i].num === 0) {
                     throw "订单商品数量为空"
                 }
+                if (data.orderItemList[i].price == null || data.orderItemList[i].price == "" || data.orderItemList[i].money == "0.00") {
+                    throw "订单商品单价为空"
+                }
+                if (data.orderItemList[i].money == null || data.orderItemList[i].money == "" || data.orderItemList[i].money == "0.00") {
+                    throw "订单商品金额为空"
+                }
                 // 组合数据
                 const orderItem = {
                     code: Util.uuidCode(),
@@ -69,6 +75,7 @@ class OrderS extends Service {
                     price: data.orderItemList[i].price,
                     name: data.orderItemList[i].name,
                     specifications: data.orderItemList[i].specifications,
+                    money: data.orderItemList[i].money,
                     create_time: cTime,
                 }
                 var stockNum = orderItem.num
@@ -89,10 +96,10 @@ class OrderS extends Service {
                 var results = await conn.update('commodity', {
                     stock: commodity.stock - stockNum,
                 }, {
-                    where: {
-                        code: orderItem.commodity_code
-                    }
-                });
+                        where: {
+                            code: orderItem.commodity_code
+                        }
+                    });
                 // 判断是否修改成功
                 if (results.affectedRows == 0) {
                     throw "库存修改失败"
@@ -133,7 +140,7 @@ class OrderS extends Service {
             // error, rollback
             await conn.rollback(); // 一定记得捕获异常后回滚事务！！
             if ((err).constructor !== String) {
-                err = "添加失败"
+                err = "异常，添加失败"
             }
             return BodyData.failData(err);
         }
@@ -201,10 +208,10 @@ class OrderS extends Service {
                 const results = await conn.update('commodity', {
                     stock: commodity.stock + stockNum,
                 }, {
-                    where: {
-                        code: orderItemList[i].commodity_code
-                    }
-                });
+                        where: {
+                            code: orderItemList[i].commodity_code
+                        }
+                    });
                 // 判断是否修改成功
                 if (results.affectedRows == 0) {
                     throw "库存修改失败"
@@ -235,6 +242,12 @@ class OrderS extends Service {
                 if (data.orderItemList[i].num == null || data.orderItemList[i].num === 0) {
                     throw "订单商品数量为空"
                 }
+                if (data.orderItemList[i].price == null || data.orderItemList[i].price == "" || data.orderItemList[i].money == "0.00") {
+                    throw "订单商品单价为空"
+                }
+                if (data.orderItemList[i].money == null || data.orderItemList[i].money == "" || data.orderItemList[i].money == "0.00") {
+                    throw "订单商品金额为空"
+                }
                 // 组合数据
                 const orderItem = {
                     code: Util.uuidCode(),
@@ -246,6 +259,7 @@ class OrderS extends Service {
                     price: data.orderItemList[i].price,
                     name: data.orderItemList[i].name,
                     specifications: data.orderItemList[i].specifications,
+                    money: data.orderItemList[i].money,
                     create_time: data.create_time,
                 }
                 var stockNum = orderItem.num
@@ -266,10 +280,10 @@ class OrderS extends Service {
                 var results = await conn.update('commodity', {
                     stock: commodity.stock - stockNum,
                 }, {
-                    where: {
-                        code: orderItem.commodity_code
-                    }
-                });
+                        where: {
+                            code: orderItem.commodity_code
+                        }
+                    });
                 // 判断是否修改成功
                 if (results.affectedRows == 0) {
                     throw "库存修改失败"
@@ -297,10 +311,10 @@ class OrderS extends Service {
                 shop: data.shop,
                 create_time: data.create_time
             }, {
-                where: {
-                    code: data.code
-                }
-            });
+                    where: {
+                        code: data.code
+                    }
+                });
             // 判断是否插入成功
             if (result.affectedRows == 0) {
                 throw "修改失败"
@@ -405,10 +419,10 @@ class OrderS extends Service {
         const result = await this.app.mysql.update('orders', {
             state: data.state,
         }, {
-            where: {
-                code: data.code
-            }
-        });
+                where: {
+                    code: data.code
+                }
+            });
         // 判断是否修改成功
         if (result.affectedRows == 0) {
             return BodyData.failData("状态更改失败");
@@ -497,5 +511,6 @@ module.exports = OrderS;
 //     `name` varchar(255) NOT NULL COMMENT '商品名字',
 //     `specifications` int(11) NOT NULL COMMENT '商品规格（一件有几个）',
 //     `bar_code` varchar(15) NOT NULL COMMENT '条形码',
+//     `money` varchar(20) NOT NULL COMMENT '条目金额',
 //     PRIMARY KEY (`id`)
 //   ) ENGINE=InnoDB AUTO_INCREMENT=203 DEFAULT CHARSET=utf8;
