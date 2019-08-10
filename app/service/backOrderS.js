@@ -4,7 +4,7 @@ const BodyData = require('../common/BodyData');
 const Util = require('../common/Util');
 class BackOrderS extends Service {
     // 添加退货单
-    async add(data,userCode) {
+    async add(data, userCode) {
         var order = {}
         // 初始化事务
         const conn = await this.app.mysql.beginTransaction();
@@ -69,36 +69,11 @@ class BackOrderS extends Service {
                     price: data.orderItemList[i].price,
                     name: data.orderItemList[i].name,
                     specifications: data.orderItemList[i].specifications,
+                    money: data.orderItemList[i].money,
                     create_time: cTime,
                 }
-                var stockNum = orderItem.num
-                if (orderItem.unit == "件") {
-                    stockNum = orderItem.num * orderItem.specifications
-                }
-                // 查询库存
-                const commodity = await conn.get('commodity', {
-                    code: orderItem.commodity_code
-                });
-                if (commodity == null) {
-                    throw "商品不存在"
-                }
-                if (commodity.stock < stockNum) {
-                    throw orderItem.name + " 库存不足"
-                }
-                // 修改库存
-                var results = await conn.update('commodity', {
-                    stock: commodity.stock - stockNum,
-                }, {
-                    where: {
-                        code: orderItem.commodity_code
-                    }
-                });
-                // 判断是否修改成功
-                if (results.affectedRows == 0) {
-                    throw "库存修改失败"
-                }
                 // 数据库插入条目数据
-                results = await conn.insert('back_order_item', orderItem);
+                var results = await conn.insert('back_order_item', orderItem);
                 // 判断是否插入成功
                 if (results.affectedRows == 0) {
                     throw "添加失败"
@@ -141,7 +116,7 @@ class BackOrderS extends Service {
 
 
     // 修改退货单
-    async update(data,userCode) {
+    async update(data, userCode) {
         var order = {}
         // 初始化事务
         const conn = await this.app.mysql.beginTransaction();
@@ -185,33 +160,6 @@ class BackOrderS extends Service {
                     order_code: orders.code
                 }, // WHERE 条件
             });
-            for (var i = 0; i < orderItemList.length; i++) {
-                // 查询库存
-                const commodity = await conn.get('commodity', {
-                    code: orderItemList[i].commodity_code
-                });
-                if (commodity == null) {
-                    throw "商品不存在"
-                }
-                var stockNum = orderItemList[i].num
-                if (orderItemList[i].unit == "件") {
-                    stockNum = orderItemList[i].num * orderItemList[i].specifications
-                }
-                // 修改库存
-                const results = await conn.update('commodity', {
-                    stock: commodity.stock + stockNum,
-                }, {
-                    where: {
-                        code: orderItemList[i].commodity_code
-                    }
-                });
-                // 判断是否修改成功
-                if (results.affectedRows == 0) {
-                    throw "库存修改失败"
-                }
-                orderItemList[i].commodity_code
-            }
-
             // 数据库删除数据（退货单条目）
             var result = await conn.delete('back_order_item', {
                 order_code: orders.code,
@@ -246,36 +194,11 @@ class BackOrderS extends Service {
                     price: data.orderItemList[i].price,
                     name: data.orderItemList[i].name,
                     specifications: data.orderItemList[i].specifications,
+                    money: data.orderItemList[i].money,
                     create_time: data.create_time,
                 }
-                var stockNum = orderItem.num
-                if (orderItem.unit == "件") {
-                    stockNum = orderItem.num * orderItem.specifications
-                }
-                // 查询库存
-                const commodity = await conn.get('commodity', {
-                    code: orderItem.commodity_code
-                });
-                if (commodity == null) {
-                    throw "商品不存在"
-                }
-                if (commodity.stock < stockNum) {
-                    throw orderItem.name + " 库存不足"
-                }
-                // 修改库存
-                var results = await conn.update('commodity', {
-                    stock: commodity.stock - stockNum,
-                }, {
-                    where: {
-                        code: orderItem.commodity_code
-                    }
-                });
-                // 判断是否修改成功
-                if (results.affectedRows == 0) {
-                    throw "库存修改失败"
-                }
                 // 数据库插入条目数据
-                results = await conn.insert('back_order_item', orderItem);
+                var results = await conn.insert('back_order_item', orderItem);
                 // 判断是否插入成功
                 if (results.affectedRows == 0) {
                     throw "添加失败"
@@ -320,7 +243,7 @@ class BackOrderS extends Service {
     }
 
     // 查询退货单
-    async find(data,userCode) {
+    async find(data, userCode) {
         // 组合查询数据
         var orderList = []
         const state = Number(data.searchType)
@@ -355,7 +278,7 @@ class BackOrderS extends Service {
     }
 
     // 删除商品
-    async delete(data,userCode) {
+    async delete(data, userCode) {
         // 初始化事务
         const conn = await this.app.mysql.beginTransaction();
         try {
@@ -389,7 +312,7 @@ class BackOrderS extends Service {
     }
 
     // 查询退货单
-    async findOrderItem(data,userCode) {
+    async findOrderItem(data, userCode) {
         // 搜索 order_item 表
         const orderItemList = await this.app.mysql.select('back_order_item', {
             where: {
@@ -401,7 +324,7 @@ class BackOrderS extends Service {
     }
 
     // 销售单状态改变
-    async stateChange(data,userCode) {
+    async stateChange(data, userCode) {
         const result = await this.app.mysql.update('back_orders', {
             state: data.state,
         }, {
@@ -415,6 +338,54 @@ class BackOrderS extends Service {
         }
         this.ctx.coreLogger.info('[登录用户]:' + userCode + '[BackOrderS.stateChange]:' + 'state:' + data.state + 'code:' + data.code);
         return BodyData.successData("状态更改成功");
+    }
+
+    // 获取打印订单数据
+    async getPrintOrders(data, userCode) {
+        // 空判断
+        if (data.code == null || data.code === "") {
+            return BodyData.failData("订单编码为空");
+        }
+        // 获取订单
+        const orders = await this.app.mysql.get('back_orders', {
+            code: data.code
+        });
+        // 获取客户
+        const customer = await this.app.mysql.get('customer', {
+            code: orders.customer_code
+        });
+
+        orders.phone = customer.phone
+
+        // 获取订单条目
+        const orderItemList = await this.app.mysql.select('back_order_item', {
+            where: {
+                order_code: data.code
+            } // WHERE 条件
+        });
+        for (var i = 0; i < orderItemList.length; i++) {
+            // 获取商品
+            const commodity = await this.app.mysql.get('commodity', {
+                code: orderItemList[i].commodity_code
+            });
+            orderItemList[i].weight = commodity.weight
+        }
+
+        orders.orderItemList = orderItemList
+
+        // 获取公司信息
+        const company = await this.app.mysql.get('company', {
+            id: 1
+        });
+
+        this.ctx.coreLogger.info('[登录用户]:' + userCode + '[BackOrderS.getPrintOrders]:' + JSON.stringify({
+            company: company,
+            orders: orders
+        }));
+        return BodyData.successData({
+            company: company,
+            orders: orders
+        });
     }
 }
 
@@ -449,5 +420,6 @@ module.exports = BackOrderS;
 //     `name` varchar(255) NOT NULL COMMENT '商品名字',
 //     `specifications` int(11) NOT NULL COMMENT '商品规格（一件有几个）',
 //     `bar_code` varchar(15) NOT NULL COMMENT '条形码',
+//     `money` varchar(20) NOT NULL COMMENT '条目金额',
 //     PRIMARY KEY (`id`)
 //   ) ENGINE=InnoDB AUTO_INCREMENT=203 DEFAULT CHARSET=utf8;
