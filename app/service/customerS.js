@@ -24,7 +24,7 @@ class CustomerS extends Service {
     if (result.affectedRows == 0) {
       return BodyData.failData("添加失败");
     }
-    this.ctx.coreLogger.info('[登录用户]:' + userCode + '[CustomerS.add]:' + JSON.stringify(customer));
+    this.app.logger.info('[登录用户]:' + userCode + '[CustomerS.add]:' + JSON.stringify(customer));
     return BodyData.successData(customer);
   }
 
@@ -67,13 +67,14 @@ class CustomerS extends Service {
       await conn.commit(); // 提交事务
       // 删除返回数据中的id字段
       delete customer.id
-      this.ctx.coreLogger.info('[登录用户]:' + userCode + '[CustomerS.update]:' + JSON.stringify(customer));
+      this.app.logger.info('[登录用户]:' + userCode + '[CustomerS.update]:' + JSON.stringify(customer));
       return BodyData.successData(customer);
     } catch (err) {
+      this.app.logger.error(err);
       // error, rollback
       await conn.rollback(); // 一定记得捕获异常后回滚事务！！
       if ((err).constructor !== String) {
-        err = "添加失败"
+        err = "异常，添加失败"
       }
       return BodyData.failData(err);
     }
@@ -94,7 +95,7 @@ class CustomerS extends Service {
     if (result.affectedRows == 0) {
       return BodyData.failData("删除失败");
     }
-    this.ctx.coreLogger.info('[登录用户]:' + userCode + '[CustomerS.delete]:' + JSON.stringify(customer));
+    this.app.logger.info('[登录用户]:' + userCode + '[CustomerS.delete]:' + JSON.stringify(customer));
     return BodyData.successData("删除成功");
   }
 
@@ -117,7 +118,7 @@ class CustomerS extends Service {
         "select * from customer where " + data.searchType + " like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
       )
     }
-    this.ctx.coreLogger.info('[登录用户]:' + userCode + '[CustomerS.find]:' + JSON.stringify(customerList));
+    this.app.logger.info('[登录用户]:' + userCode + '[CustomerS.find]:' + JSON.stringify(customerList));
     return BodyData.successData(customerList);
   }
 

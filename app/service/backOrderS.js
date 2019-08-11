@@ -102,13 +102,14 @@ class BackOrderS extends Service {
             }
             order.orderItemList = data.orderItemList
             await conn.commit(); // 提交事务
-            this.ctx.coreLogger.info('[登录用户]:' + userCode + '[BackOrderS.add]:' + JSON.stringify(order));
+            this.app.logger.info('[登录用户]:' + userCode + '[BackOrderS.add]:' + JSON.stringify(order));
             return BodyData.successData(order);
         } catch (err) {
+            this.app.logger.error(err);
             // error, rollback
             await conn.rollback(); // 一定记得捕获异常后回滚事务！！
             if ((err).constructor !== String) {
-                err = "添加失败"
+                err = "异常，添加失败"
             }
             return BodyData.failData(err);
         }
@@ -230,13 +231,14 @@ class BackOrderS extends Service {
             }
             orders.orderItemList = data.orderItemList
             await conn.commit(); // 提交事务
-            this.ctx.coreLogger.info('[登录用户]:' + userCode + '[BackOrderS.update]:' + JSON.stringify(orders));
+            this.app.logger.info('[登录用户]:' + userCode + '[BackOrderS.update]:' + JSON.stringify(orders));
             return BodyData.successData(orders);
         } catch (err) {
+            this.app.logger.error(err);
             // error, rollback
             await conn.rollback(); // 一定记得捕获异常后回滚事务！！
             if ((err).constructor !== String) {
-                err = "修改失败"
+                err = "异常，修改失败"
             }
             return BodyData.failData(err);
         }
@@ -273,7 +275,7 @@ class BackOrderS extends Service {
                 "select * from back_orders where " + stateData + "shop like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
             )
         }
-        this.ctx.coreLogger.info('[登录用户]:' + userCode + '[BackOrderS.find]:' + JSON.stringify(orderList));
+        this.app.logger.info('[登录用户]:' + userCode + '[BackOrderS.find]:' + JSON.stringify(orderList));
         return BodyData.successData(orderList);
     }
 
@@ -299,13 +301,14 @@ class BackOrderS extends Service {
                 throw "删除失败"
             }
             await conn.commit(); // 提交事务
-            this.ctx.coreLogger.info('[登录用户]:' + userCode + '[BackOrderS.delete]:' + data.code);
+            this.app.logger.info('[登录用户]:' + userCode + '[BackOrderS.delete]:' + data.code);
             return BodyData.successData("删除成功");
         } catch (err) {
+            this.app.logger.error(err);
             // error, rollback
             await conn.rollback(); // 一定记得捕获异常后回滚事务！！
             if ((err).constructor !== String) {
-                err = "删除失败"
+                err = "异常，删除失败"
             }
             return BodyData.failData(err);
         }
@@ -319,7 +322,7 @@ class BackOrderS extends Service {
                 order_code: data.code
             } // WHERE 条件
         });
-        this.ctx.coreLogger.info('[登录用户]:' + userCode + '[BackOrderS.findOrderItem]:' + JSON.stringify(orderItemList));
+        this.app.logger.info('[登录用户]:' + userCode + '[BackOrderS.findOrderItem]:' + JSON.stringify(orderItemList));
         return BodyData.successData(orderItemList);
     }
 
@@ -336,7 +339,7 @@ class BackOrderS extends Service {
         if (result.affectedRows == 0) {
             return BodyData.failData("状态更改失败");
         }
-        this.ctx.coreLogger.info('[登录用户]:' + userCode + '[BackOrderS.stateChange]:' + 'state:' + data.state + 'code:' + data.code);
+        this.app.logger.info('[登录用户]:' + userCode + '[BackOrderS.stateChange]:' + 'state:' + data.state + 'code:' + data.code);
         return BodyData.successData("状态更改成功");
     }
 
@@ -378,7 +381,7 @@ class BackOrderS extends Service {
             id: 1
         });
 
-        this.ctx.coreLogger.info('[登录用户]:' + userCode + '[BackOrderS.getPrintOrders]:' + JSON.stringify({
+        this.app.logger.info('[登录用户]:' + userCode + '[BackOrderS.getPrintOrders]:' + JSON.stringify({
             company: company,
             orders: orders
         }));
@@ -395,7 +398,6 @@ module.exports = BackOrderS;
 //     `code` varchar(45) NOT NULL COMMENT '退货单编码',
 //     `customer_code` varchar(45) NOT NULL COMMENT '客户编码',
 //     `order_num_code` varchar(21) NOT NULL COMMENT '单据编号',
-//     `order_delivery_code` varchar(45) NOT NULL COMMENT '送货员',
 //     `order_write_code` varchar(45) NOT NULL COMMENT '下单员',
 //     `num` int(11) NOT NULL COMMENT '退货单总数',
 //     `price` varchar(20) NOT NULL COMMENT '退货单总金额',

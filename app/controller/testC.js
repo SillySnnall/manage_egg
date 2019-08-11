@@ -9,6 +9,17 @@ class TestC extends Controller {
     async index() {
 
 
+
+        // for (var i = 0; i < 100; i++) {
+        //     this.ctx.service.customerS.add({
+        //         shop: "商店" + i,
+        //         name: "名字" + i,
+        //         phone: "手机" + i,
+        //         region: "市区",
+        //     }, " ");
+        // }
+
+
         // try {
         //     console.log("33333")
         //     throw "沙龙的骄傲了"
@@ -16,10 +27,28 @@ class TestC extends Controller {
         // } catch (error) {
         //     this.ctx.body = error
         // }
-        this.ctx.body = {
-            uuid: Util.uuidCode(),
-            time: Date.now()
-        }
+        // this.ctx.body = {
+        //     uuid: Util.uuidCode(),
+        //     time: Date.now()
+        // }
+
+        // try {
+        //     await this.ctx.service.customerS.add({
+        //         id: "sakjakdjas",
+        //         shop: "data.shop",
+        //         phone: "djsldjslk2121312321dskfjdslfjlds",
+        //         region: "data.region",
+        //     }, "dsjaldsjljkad");
+        // } catch (error) {
+        //     this.app.logger.error(error);
+        //     // this.app.logger.error(
+        //     "errno:" + error.errno +
+        //     "\nsqlMessage:" + error.sqlMessage +
+        //     "\nsqlState:" + error.sqlState +
+        //     "\nindex:" + error.index +
+        //     "\nsql:" + error.sql +
+        //     "\nname:" + error.code);
+        // }
         // const creatuuid = uuid.v1()
         // uuid.v1().split('-').join("") + Date.now()
         // const results = await this.app.mysql.get('customer', {

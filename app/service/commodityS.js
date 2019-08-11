@@ -65,7 +65,7 @@ class CommodityS extends Service {
     if (result.affectedRows == 0) {
       return BodyData.failData("添加失败");
     }
-    this.ctx.coreLogger.info('[登录用户]:' + userCode + '[CommodityS.add]:' + JSON.stringify(commodity));
+    this.app.logger.info('[登录用户]:' + userCode + '[CommodityS.add]:' + JSON.stringify(commodity));
     return BodyData.successData(commodity);
   }
 
@@ -140,13 +140,14 @@ class CommodityS extends Service {
       await conn.commit(); // 提交事务
       // 删除返回数据中的id字段
       delete commodity.id
-      this.ctx.coreLogger.info('[登录用户]:' + userCode + '[CommodityS.update]:' + JSON.stringify(commodity));
+      this.app.logger.info('[登录用户]:' + userCode + '[CommodityS.update]:' + JSON.stringify(commodity));
       return BodyData.successData(commodity);
     } catch (err) {
+      this.app.logger.error(err);
       // error, rollback
       await conn.rollback(); // 一定记得捕获异常后回滚事务！！
       if ((err).constructor !== String) {
-        err = "添加失败"
+        err = "异常，添加失败"
       }
       return BodyData.failData(err);
     }
@@ -167,7 +168,7 @@ class CommodityS extends Service {
     if (result.affectedRows == 0) {
       return BodyData.failData("删除失败");
     }
-    this.ctx.coreLogger.info('[登录用户]:' + userCode + '[CommodityS.delete]:' + JSON.stringify(commodity));
+    this.app.logger.info('[登录用户]:' + userCode + '[CommodityS.delete]:' + JSON.stringify(commodity));
     return BodyData.successData("删除成功");
   }
 
@@ -190,7 +191,7 @@ class CommodityS extends Service {
         "select * from commodity where " + data.searchType + " like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
       )
     }
-    this.ctx.coreLogger.info('[登录用户]:' + userCode + '[CommodityS.find]:' + JSON.stringify(commodityList));
+    this.app.logger.info('[登录用户]:' + userCode + '[CommodityS.find]:' + JSON.stringify(commodityList));
     return BodyData.successData(commodityList);
   }
 

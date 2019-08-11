@@ -134,9 +134,10 @@ class OrderS extends Service {
             }
             order.orderItemList = data.orderItemList
             await conn.commit(); // 提交事务
-            this.ctx.coreLogger.info('[登录用户]:' + userCode + '[OrderS.add]:' + JSON.stringify(order));
+            this.app.logger.info('[登录用户]:' + userCode + '[OrderS.add]:' + JSON.stringify(order));
             return BodyData.successData(order);
         } catch (err) {
+            this.app.logger.error(err);
             // error, rollback
             await conn.rollback(); // 一定记得捕获异常后回滚事务！！
             if ((err).constructor !== String) {
@@ -321,13 +322,14 @@ class OrderS extends Service {
             }
             orders.orderItemList = data.orderItemList
             await conn.commit(); // 提交事务
-            this.ctx.coreLogger.info('[登录用户]:' + userCode + '[OrderS.update]:' + JSON.stringify(orders));
+            this.app.logger.info('[登录用户]:' + userCode + '[OrderS.update]:' + JSON.stringify(orders));
             return BodyData.successData(orders);
         } catch (err) {
+            this.app.logger.error(err);
             // error, rollback
             await conn.rollback(); // 一定记得捕获异常后回滚事务！！
             if ((err).constructor !== String) {
-                err = "修改失败"
+                err = "异常，修改失败"
             }
             return BodyData.failData(err);
         }
@@ -364,7 +366,7 @@ class OrderS extends Service {
                 "select * from orders where " + stateData + "shop like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
             )
         }
-        this.ctx.coreLogger.info('[登录用户]:' + userCode + '[OrderS.find]:' + JSON.stringify(orderList));
+        this.app.logger.info('[登录用户]:' + userCode + '[OrderS.find]:' + JSON.stringify(orderList));
         return BodyData.successData(orderList);
     }
 
@@ -390,13 +392,14 @@ class OrderS extends Service {
                 throw "删除失败"
             }
             await conn.commit(); // 提交事务
-            this.ctx.coreLogger.info('[登录用户]:' + userCode + '[OrderS.delete]:' + data.code);
+            this.app.logger.info('[登录用户]:' + userCode + '[OrderS.delete]:' + data.code);
             return BodyData.successData("删除成功");
         } catch (err) {
+            this.app.logger.error(err);
             // error, rollback
             await conn.rollback(); // 一定记得捕获异常后回滚事务！！
             if ((err).constructor !== String) {
-                err = "删除失败"
+                err = "异常，删除失败"
             }
             return BodyData.failData(err);
         }
@@ -410,7 +413,7 @@ class OrderS extends Service {
                 order_code: data.code
             } // WHERE 条件
         });
-        this.ctx.coreLogger.info('[登录用户]:' + userCode + '[OrderS.findOrderItem]:' + JSON.stringify(orderItemList));
+        this.app.logger.info('[登录用户]:' + userCode + '[OrderS.findOrderItem]:' + JSON.stringify(orderItemList));
         return BodyData.successData(orderItemList);
     }
 
@@ -427,7 +430,7 @@ class OrderS extends Service {
         if (result.affectedRows == 0) {
             return BodyData.failData("状态更改失败");
         }
-        this.ctx.coreLogger.info('[登录用户]:' + userCode + '[OrderS.stateChange]:' + 'state:' + data.state + 'code:' + data.code);
+        this.app.logger.info('[登录用户]:' + userCode + '[OrderS.stateChange]:' + 'state:' + data.state + 'code:' + data.code);
         return BodyData.successData("状态更改成功");
     }
 
@@ -469,7 +472,7 @@ class OrderS extends Service {
             id: 1
         });
 
-        this.ctx.coreLogger.info('[登录用户]:' + userCode + '[OrderS.getPrintOrders]:' + JSON.stringify({
+        this.app.logger.info('[登录用户]:' + userCode + '[OrderS.getPrintOrders]:' + JSON.stringify({
             company: company,
             orders: orders
         }));
@@ -486,7 +489,6 @@ module.exports = OrderS;
 //     `code` varchar(45) NOT NULL COMMENT '订单编码',
 //     `customer_code` varchar(45) NOT NULL COMMENT '客户编码',
 //     `order_num_code` varchar(21) NOT NULL COMMENT '单据编号',
-//     `order_delivery_code` varchar(45) NOT NULL COMMENT '送货员',
 //     `order_write_code` varchar(45) NOT NULL COMMENT '下单员',
 //     `num` int(11) NOT NULL COMMENT '订单总数',
 //     `price` varchar(20) NOT NULL COMMENT '订单总金额',

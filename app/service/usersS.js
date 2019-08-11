@@ -44,7 +44,7 @@ class UsersS extends Service {
     // 删除返回数据中的password字段
     delete users.username
     delete users.password
-    this.ctx.coreLogger.info('[登录用户]:' + userCode + '[UsersS.add]:' + JSON.stringify(users));
+    this.app.logger.info('[登录用户]:' + userCode + '[UsersS.add]:' + JSON.stringify(users));
     return BodyData.successData(users);
   }
 
@@ -63,7 +63,7 @@ class UsersS extends Service {
     delete users.id
     delete users.username
     delete users.password
-    this.ctx.coreLogger.info('[登录用户]:' + userCode + '[UsersS.login]:' + JSON.stringify(users));
+    this.app.logger.info('[登录用户]:' + userCode + '[UsersS.login]:' + JSON.stringify(users));
     return BodyData.successData(users);
   }
 
