@@ -126,6 +126,9 @@ class BackOrderS extends Service {
             if (data.customer_code == null || data.customer_code === "") {
                 throw "客户编码为空"
             }
+            if (data.order_num_code == null || data.order_num_code === "") {
+                throw "单据编号为空"
+            }
             if (data.shop == null || data.shop === "") {
                 throw "商店名字为空"
             }

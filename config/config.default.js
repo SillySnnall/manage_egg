@@ -13,8 +13,8 @@ module.exports = appInfo => {
   const config = exports = {
     // 阿里云node监控
     alinode: {
-      enable: true, // 上线时开启
-      // enable: false, // 上线时开启
+      // enable: true, // 上线时开启
+      enable: false, // 上线时开启
       appid: '81048',
       secret: '5c4fc9372dbb0790af973ec25fa2cd1a432679ef',
     },
