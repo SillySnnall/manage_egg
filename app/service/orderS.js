@@ -125,7 +125,8 @@ class OrderS extends Service {
                 shop: data.shop,
                 real_price: data.real_price,
                 create_time: cTime,
-                is_del: 0
+                is_del: 0,
+                posting_time: ""
             }
             // 数据库插入条目数据
             const result = await conn.insert('orders', order);
@@ -314,7 +315,8 @@ class OrderS extends Service {
                 real_price: data.real_price,
                 shop: data.shop,
                 create_time: data.create_time,
-                is_del: data.is_del
+                is_del: data.is_del,
+                posting_time: data.posting_time
             }, {
                 where: {
                     code: data.code
@@ -450,6 +452,7 @@ class OrderS extends Service {
     async stateChange(data, userCode) {
         const result = await this.app.mysql.update('orders', {
             state: data.state,
+            posting_time: Date.now()
         }, {
             where: {
                 code: data.code
@@ -527,6 +530,7 @@ module.exports = OrderS;
 //     `real_price` varchar(20) NOT NULL COMMENT '实际收款金额',
 //     `shop` varchar(255) NOT NULL COMMENT '商店名字',
 //     `is_del` int(2) NOT NULL COMMENT '是否删除了（0未删除，1已删除）',
+//     `posting_time` varchar(13) NOT NULL COMMENT '过账时间',
 //     PRIMARY KEY (`id`)
 //   ) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8;
 
