@@ -16,7 +16,8 @@ class CustomerS extends Service {
       name: data.name,
       phone: data.phone,
       region: data.region,
-      create_time: Date.now()
+      create_time: Date.now(),
+      is_del: 0
     }
     // 数据库插入数据
     const result = await this.app.mysql.insert('customer', customer);
@@ -49,6 +50,7 @@ class CustomerS extends Service {
       customer.name = data.name
       customer.phone = data.phone
       customer.region = data.region
+      customer.is_del = data.is_del
 
       // 数据库修改数据
       var result = await conn.update('customer', customer);
@@ -90,7 +92,8 @@ class CustomerS extends Service {
       return BodyData.failData("客户不存在");
     }
     // 数据库删除数据
-    const result = await this.app.mysql.delete('customer', customer);
+    customer.is_del = 1;
+    const result = await this.app.mysql.update('customer', customer);
     // 判断是否删除成功
     if (result.affectedRows == 0) {
       return BodyData.failData("删除失败");
@@ -106,6 +109,9 @@ class CustomerS extends Service {
     const offset = Number(data.offset) * Number(data.limit)
     if (data.searchText == null || data.searchText == '') {
       customerList = await this.app.mysql.select('customer', { // 搜索 post 表
+        where: {
+          is_del: 0
+        }, // WHERE 条件
         orders: [
           ['create_time', 'desc']
         ], // 排序方式
@@ -115,7 +121,7 @@ class CustomerS extends Service {
     } else {
       // 条件，模糊，排序 查询
       customerList = await this.app.mysql.query(
-        "select * from customer where " + data.searchType + " like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
+        "select * from customer where is_del = 0 and " + data.searchType + " like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
       )
     }
     this.app.logger.info('[登录用户]:' + userCode + '[CustomerS.find]:' + JSON.stringify(customerList));
@@ -133,5 +139,6 @@ module.exports = CustomerS;
 //   `phone` varchar(11) NOT NULL COMMENT '电话号码',
 //   `region` varchar(11) NOT NULL COMMENT '地区',
 //   `create_time` varchar(13) NOT NULL COMMENT '创建时间',
+//   `is_del` int(2) NOT NULL COMMENT '是否删除了（0未删除，1已删除）',
 //   PRIMARY KEY (`id`)
 // ) ENGINE=InnoDB AUTO_INCREMENT=73 DEFAULT CHARSET=utf8;

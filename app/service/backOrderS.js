@@ -92,7 +92,8 @@ class BackOrderS extends Service {
                 state: data.state,
                 shop: data.shop,
                 real_price: data.real_price,
-                create_time: cTime
+                create_time: cTime,
+                is_del: 0
             }
             // 数据库插入条目数据
             const result = await conn.insert('back_orders', order);
@@ -199,7 +200,7 @@ class BackOrderS extends Service {
                     name: data.orderItemList[i].name,
                     specifications: data.orderItemList[i].specifications,
                     money: data.orderItemList[i].money,
-                    create_time: data.create_time,
+                    create_time: data.create_time
                 }
                 // 数据库插入条目数据
                 var results = await conn.insert('back_order_item', orderItem);
@@ -220,9 +221,9 @@ class BackOrderS extends Service {
                 price: data.price,
                 state: data.state,
                 real_price: data.real_price,
-
                 shop: data.shop,
-                create_time: data.create_time
+                create_time: data.create_time,
+                is_del: data.is_del
             }, {
                 where: {
                     code: data.code
@@ -257,7 +258,12 @@ class BackOrderS extends Service {
             var whereData = {}
             if (state != -1) {
                 whereData = {
-                    state: state
+                    state: state,
+                    is_del: 0
+                }
+            } else {
+                whereData = {
+                    is_del: 0
                 }
             }
             orderList = await this.app.mysql.select('back_orders', { // 搜索 post 表
@@ -275,7 +281,7 @@ class BackOrderS extends Service {
             }
             //  条件，模糊，排序 查询
             orderList = await this.app.mysql.query(
-                "select * from back_orders where " + stateData + "shop like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
+                "select * from back_orders where is_del = 0 and " + stateData + "shop like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
             )
         }
         this.app.logger.info('[登录用户]:' + userCode + '[BackOrderS.find]:' + JSON.stringify(orderList));
@@ -284,6 +290,27 @@ class BackOrderS extends Service {
 
     // 删除商品
     async delete(data, userCode) {
+        // 查询此客户是否存在
+        const back_orders = await this.app.mysql.get('back_orders', {
+            code: data.code
+        });
+        if (back_orders == null) {
+            return BodyData.failData("订单不存在");
+        }
+        // 数据库删除数据
+        back_orders.is_del = 1;
+        const result = await this.app.mysql.update('back_orders', back_orders);
+        // 判断是否删除成功
+        if (result.affectedRows == 0) {
+            return BodyData.failData("删除失败");
+        }
+        this.app.logger.info('[登录用户]:' + userCode + '[OrderS.delete]:' + JSON.stringify(back_orders));
+        return BodyData.successData("删除成功");
+    }
+
+
+    // 删除商品
+    async deleteReally(data, userCode) {
         // 初始化事务
         const conn = await this.app.mysql.beginTransaction();
         try {
@@ -409,6 +436,7 @@ module.exports = BackOrderS;
 //     `create_time` varchar(13) NOT NULL COMMENT '创建时间',
 //     `real_price` varchar(20) NOT NULL COMMENT '实际收款金额',
 //     `shop` varchar(255) NOT NULL COMMENT '商店名字',
+//     `is_del` int(2) NOT NULL COMMENT '是否删除了（0未删除，1已删除）',
 //     PRIMARY KEY (`id`)
 //   ) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8;
 

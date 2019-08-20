@@ -96,10 +96,10 @@ class OrderS extends Service {
                 var results = await conn.update('commodity', {
                     stock: commodity.stock - stockNum,
                 }, {
-                        where: {
-                            code: orderItem.commodity_code
-                        }
-                    });
+                    where: {
+                        code: orderItem.commodity_code
+                    }
+                });
                 // 判断是否修改成功
                 if (results.affectedRows == 0) {
                     throw "库存修改失败"
@@ -124,7 +124,8 @@ class OrderS extends Service {
                 state: data.state,
                 shop: data.shop,
                 real_price: data.real_price,
-                create_time: cTime
+                create_time: cTime,
+                is_del: 0
             }
             // 数据库插入条目数据
             const result = await conn.insert('orders', order);
@@ -212,10 +213,10 @@ class OrderS extends Service {
                 const results = await conn.update('commodity', {
                     stock: commodity.stock + stockNum,
                 }, {
-                        where: {
-                            code: orderItemList[i].commodity_code
-                        }
-                    });
+                    where: {
+                        code: orderItemList[i].commodity_code
+                    }
+                });
                 // 判断是否修改成功
                 if (results.affectedRows == 0) {
                     throw "库存修改失败"
@@ -284,10 +285,10 @@ class OrderS extends Service {
                 var results = await conn.update('commodity', {
                     stock: commodity.stock - stockNum,
                 }, {
-                        where: {
-                            code: orderItem.commodity_code
-                        }
-                    });
+                    where: {
+                        code: orderItem.commodity_code
+                    }
+                });
                 // 判断是否修改成功
                 if (results.affectedRows == 0) {
                     throw "库存修改失败"
@@ -311,14 +312,14 @@ class OrderS extends Service {
                 price: data.price,
                 state: data.state,
                 real_price: data.real_price,
-
                 shop: data.shop,
-                create_time: data.create_time
+                create_time: data.create_time,
+                is_del: data.is_del
             }, {
-                    where: {
-                        code: data.code
-                    }
-                });
+                where: {
+                    code: data.code
+                }
+            });
             // 判断是否插入成功
             if (result.affectedRows == 0) {
                 throw "修改失败"
@@ -348,7 +349,12 @@ class OrderS extends Service {
             var whereData = {}
             if (state != -1) {
                 whereData = {
-                    state: state
+                    state: state,
+                    is_del: 0
+                }
+            } else {
+                whereData = {
+                    is_del: 0
                 }
             }
             orderList = await this.app.mysql.select('orders', { // 搜索 post 表
@@ -366,7 +372,7 @@ class OrderS extends Service {
             }
             //  条件，模糊，排序 查询
             orderList = await this.app.mysql.query(
-                "select * from orders where " + stateData + "shop like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
+                "select * from orders where is_del = 0 and " + stateData + "shop like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
             )
         }
         this.app.logger.info('[登录用户]:' + userCode + '[OrderS.find]:' + JSON.stringify(orderList));
@@ -375,6 +381,26 @@ class OrderS extends Service {
 
     // 删除商品
     async delete(data, userCode) {
+        // 查询此客户是否存在
+        const orders = await this.app.mysql.get('orders', {
+            code: data.code
+        });
+        if (orders == null) {
+            return BodyData.failData("订单不存在");
+        }
+        // 数据库删除数据
+        orders.is_del = 1;
+        const result = await this.app.mysql.update('orders', orders);
+        // 判断是否删除成功
+        if (result.affectedRows == 0) {
+            return BodyData.failData("删除失败");
+        }
+        this.app.logger.info('[登录用户]:' + userCode + '[OrderS.delete]:' + JSON.stringify(orders));
+        return BodyData.successData("删除成功");
+    }
+
+    // 删除商品
+    async deleteReally(data, userCode) {
         // 初始化事务
         const conn = await this.app.mysql.beginTransaction();
         try {
@@ -425,10 +451,10 @@ class OrderS extends Service {
         const result = await this.app.mysql.update('orders', {
             state: data.state,
         }, {
-                where: {
-                    code: data.code
-                }
-            });
+            where: {
+                code: data.code
+            }
+        });
         // 判断是否修改成功
         if (result.affectedRows == 0) {
             return BodyData.failData("状态更改失败");
@@ -500,6 +526,7 @@ module.exports = OrderS;
 //     `create_time` varchar(13) NOT NULL COMMENT '创建时间',
 //     `real_price` varchar(20) NOT NULL COMMENT '实际收款金额',
 //     `shop` varchar(255) NOT NULL COMMENT '商店名字',
+//     `is_del` int(2) NOT NULL COMMENT '是否删除了（0未删除，1已删除）',
 //     PRIMARY KEY (`id`)
 //   ) ENGINE=InnoDB AUTO_INCREMENT=84 DEFAULT CHARSET=utf8;
 

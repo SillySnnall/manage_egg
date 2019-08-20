@@ -57,7 +57,8 @@ class CommodityS extends Service {
       price_out_down: data.price_out_down,
       img_url: data.img_url,
       stock: data.stock,
-      create_time: Date.now()
+      create_time: Date.now(),
+      is_del: 0
     }
     // 数据库插入数据
     result = await this.app.mysql.insert('commodity', commodity);
@@ -123,6 +124,7 @@ class CommodityS extends Service {
       commodity.img_url = data.img_url
       commodity.price_out_down = data.price_out_down
       commodity.stock = data.stock
+      commodity.is_del = data.is_del
       // 数据库修改数据
       var result = await conn.update('commodity', commodity);
       // 判断是否修改成功
@@ -162,8 +164,9 @@ class CommodityS extends Service {
     if (commodity == null) {
       return BodyData.failData("客户不存在");
     }
-    // 数据库删除数据
-    const result = await this.app.mysql.delete('commodity', commodity);
+    // 数据库删除更改删除字段
+    commodity.is_del = 1;
+    const result = await this.app.mysql.update('commodity', commodity);
     // 判断是否删除成功
     if (result.affectedRows == 0) {
       return BodyData.failData("删除失败");
@@ -179,6 +182,9 @@ class CommodityS extends Service {
     const offset = Number(data.offset) * Number(data.limit)
     if (data.searchText == null || data.searchText == '') {
       commodityList = await this.app.mysql.select('commodity', { // 搜索 post 表
+        where: {
+          is_del: 0
+        }, // WHERE 条件
         orders: [
           ['create_time', 'desc']
         ], // 排序方式
@@ -188,7 +194,7 @@ class CommodityS extends Service {
     } else {
       // 条件，模糊，排序 查询
       commodityList = await this.app.mysql.query(
-        "select * from commodity where " + data.searchType + " like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
+        "select * from commodity where is_del = 0 and " + data.searchType + " like '%" + data.searchText + "%' ORDER BY 'create_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
       )
     }
     this.app.logger.info('[登录用户]:' + userCode + '[CommodityS.find]:' + JSON.stringify(commodityList));
@@ -213,5 +219,6 @@ module.exports = CommodityS;
 //   `img_url` varchar(255) NOT NULL COMMENT '商品图片',
 //   `create_time` varchar(13) NOT NULL COMMENT '创建时间',
 //   `stock` int(11) NOT NULL COMMENT '库存',
+//   `is_del` int(2) NOT NULL COMMENT '是否删除了（0未删除，1已删除）',
 //   PRIMARY KEY (`id`)
 // ) ENGINE=InnoDB AUTO_INCREMENT=27 DEFAULT CHARSET=utf8;
