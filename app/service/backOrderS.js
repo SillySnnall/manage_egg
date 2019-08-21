@@ -94,7 +94,7 @@ class BackOrderS extends Service {
                 real_price: data.real_price,
                 create_time: cTime,
                 is_del: 0,
-                posting_time: ""
+                posting_time: "0"
             }
             // 数据库插入条目数据
             const result = await conn.insert('back_orders', order);
@@ -422,6 +422,28 @@ class BackOrderS extends Service {
             company: company,
             orders: orders
         });
+    }
+
+
+    // 查询订单
+    async findDateOrder(data, userCode) {
+        // 空判断
+        if (data.startDate == null || data.startDate === "") {
+            return BodyData.failData("开始时间为空");
+        }
+        // 空判断
+        if (data.endDate == null || data.endDate === "") {
+            return BodyData.failData("结束时间为空");
+        }
+        // 组合查询数据
+        var orderList = []
+        const offset = Number(data.offset) * Number(data.limit)
+        //  条件，范围，排序 查询
+        orderList = await this.app.mysql.query(
+            "select * from back_orders where is_del = 0 and state = 3 and posting_time between " + data.startDate + " and " + data.endDate + " ORDER BY 'posting_time' DESC LIMIT " + Number(offset) + "," + Number(data.limit)
+        )
+        this.app.logger.info('[登录用户]:' + userCode + '[OrderS.findDateOrder]:' + JSON.stringify(orderList));
+        return BodyData.successData(orderList);
     }
 }
 

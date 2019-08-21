@@ -68,6 +68,9 @@ class IndexC extends Controller {
         return await this.ctx.service.orderS.stateChange(data, userCode);
       case "getPrintOrders": // 获取打印订单数据
         return await this.ctx.service.orderS.getPrintOrders(data, userCode);
+      case "findDateOrder": // 按时间查询过账订单
+        return await this.ctx.service.orderS.findDateOrder(data, userCode);
+
 
       case "addBackOrder": // 添加退货单
         return await this.ctx.service.backOrderS.add(data, userCode);
@@ -81,6 +84,8 @@ class IndexC extends Controller {
         return await this.ctx.service.backOrderS.findOrderItem(data, userCode);
       case "stateBackChange": // 更改退货单状态
         return await this.ctx.service.backOrderS.stateChange(data, userCode);
+      case "findBackDateOrder": // 按时间查询过账退货单
+        return await this.ctx.service.backOrderS.findDateOrder(data, userCode);
     }
   }
 
