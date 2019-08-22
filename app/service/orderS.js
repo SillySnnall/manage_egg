@@ -2,43 +2,17 @@ const Service = require('egg').Service;
 
 const BodyData = require('../common/BodyData');
 const Util = require('../common/Util');
+const IsEmputy = require('../common/IsEmputy');
 class OrderS extends Service {
     // 添加订单
     async add(data, userCode) {
-        var order = {}
         // 初始化事务
         const conn = await this.app.mysql.beginTransaction();
         try {
-            // 空判断
-            if (data.customer_code == null || data.customer_code === "") {
-                throw "客户编码为空"
-            }
-            // 空判断
-            if (data.shop == null || data.shop === "") {
-                throw "商店名字为空"
-            }
-            // 空判断
-            if (data.order_write_code == null || data.order_write_code === "") {
-                throw "下单员为空"
-            }
-            // 空判断
-            if (data.num == null || data.num === 0) {
-                throw "订单总数为空"
-            }
-            // 空判断
-            if (data.price == null || data.price === "" || data.price === "0.00") {
-                throw "订单总金额为空"
-            }
-            if (data.real_price == null || data.real_price === "" || data.real_price === "0.00") {
-                throw "订单实际金额为空"
-            }
-            // 空判断
-            if (data.state == null) {
-                throw "订单状态为空"
-            }
-            // 空判断
-            if (data.orderItemList == null || data.orderItemList.length === 0) {
-                throw "订单列表为空"
+            //判空
+            const err = IsEmputy.isEmputyOrderS1(data)
+            if (err != "") {
+                throw err
             }
 
             const uuid = Util.uuidCode();
@@ -46,38 +20,17 @@ class OrderS extends Service {
 
             // 商品条目数据处理
             for (var i = 0; i < data.orderItemList.length; i++) {
-                if (data.orderItemList[i].name == null || data.orderItemList[i].name === "") {
-                    throw "商品名字为空"
+                var orderItem = data.orderItemList[i];
+
+                const err = IsEmputy.isEmputyOrderS2(orderItem)
+                if (err != "") {
+                    throw err
                 }
-                if (data.orderItemList[i].commodity_code == null || data.orderItemList[i].commodity_code === "") {
-                    throw "订单商品编码为空"
-                }
-                if (data.orderItemList[i].bar_code == null || data.orderItemList[i].bar_code === "") {
-                    throw "商品条形码为空"
-                }
-                if (data.orderItemList[i].num == null || data.orderItemList[i].num === 0) {
-                    throw "订单商品数量为空"
-                }
-                if (data.orderItemList[i].price == null || data.orderItemList[i].price == "" || data.orderItemList[i].money == "0.00") {
-                    throw "订单商品单价为空"
-                }
-                if (data.orderItemList[i].money == null || data.orderItemList[i].money == "" || data.orderItemList[i].money == "0.00") {
-                    throw "订单商品金额为空"
-                }
-                // 组合数据
-                const orderItem = {
-                    code: Util.uuidCode(),
-                    order_code: uuid,
-                    commodity_code: data.orderItemList[i].commodity_code,
-                    bar_code: data.orderItemList[i].bar_code,
-                    num: data.orderItemList[i].num,
-                    unit: data.orderItemList[i].unit,
-                    price: data.orderItemList[i].price,
-                    name: data.orderItemList[i].name,
-                    specifications: data.orderItemList[i].specifications,
-                    money: data.orderItemList[i].money,
-                    create_time: cTime,
-                }
+
+                orderItem.code = Util.uuidCode()
+                orderItem.order_code = uuid
+                orderItem.create_time = cTime
+
                 var stockNum = orderItem.num
                 if (orderItem.unit == "件") {
                     stockNum = orderItem.num * orderItem.specifications
@@ -112,32 +65,26 @@ class OrderS extends Service {
                 }
             }
 
-            // 组合数据
-            order = {
-                code: uuid,
-                customer_code: data.customer_code,
-                order_write_code: data.order_write_code,
-                num: data.num,
-                order_num_code: Util.orderNumCode(),
-                price_up: Util.digitUppercase(data.price),
-                price: data.price,
-                state: data.state,
-                shop: data.shop,
-                real_price: data.real_price,
-                create_time: cTime,
-                is_del: 0,
-                posting_time: "0"
-            }
+            data.code = uuid;
+            data.order_num_code = Util.orderNumCode();
+            data.price_up = Util.digitUppercase(data.price);
+            data.create_time = cTime;
+            data.is_del = 0;
+            data.posting_time = "0";
+
+            const orderItemList = data.orderItemList;
+            // 先删除后面再加上
+            delete data.orderItemList;
             // 数据库插入条目数据
-            const result = await conn.insert('orders', order);
+            const result = await conn.insert('orders', data);
             // 判断是否插入成功
             if (result.affectedRows == 0) {
                 throw "添加失败"
             }
-            order.orderItemList = data.orderItemList
             await conn.commit(); // 提交事务
-            this.app.logger.info('[登录用户]:' + userCode + '[OrderS.add]:' + JSON.stringify(order));
-            return BodyData.successData(order);
+            data.orderItemList = orderItemList
+            this.app.logger.info('[登录用户]:' + userCode + '[OrderS.add]:' + JSON.stringify(data));
+            return BodyData.successData(data);
         } catch (err) {
             this.app.logger.error(err);
             // error, rollback
@@ -152,37 +99,13 @@ class OrderS extends Service {
 
     // 修改订单
     async update(data, userCode) {
-        var order = {}
         // 初始化事务
         const conn = await this.app.mysql.beginTransaction();
         try {
             // 空判断
-            if (data.customer_code == null || data.customer_code === "") {
-                throw "客户编码为空"
-            }
-            if (data.order_num_code == null || data.order_num_code === "") {
-                throw "单据编号为空"
-            }
-            if (data.shop == null || data.shop === "") {
-                throw "商店名字为空"
-            }
-            if (data.order_write_code == null || data.order_write_code === "") {
-                throw "下单员为空"
-            }
-            if (data.num == null || data.num === 0) {
-                throw "订单总数为空"
-            }
-            if (data.price == null || data.price === "" || data.price === "0.00") {
-                throw "订单总金额为空"
-            }
-            if (data.real_price == null || data.real_price === "" || data.real_price === "0.00") {
-                throw "订单实际金额为空"
-            }
-            if (data.state == null) {
-                throw "订单状态为空"
-            }
-            if (data.orderItemList == null || data.orderItemList.length === 0) {
-                throw "订单列表为空"
+            const err = IsEmputy.isEmputyOrderS3(data)
+            if (err != "") {
+                throw err
             }
 
             // 查询此订单是否存在
@@ -206,6 +129,7 @@ class OrderS extends Service {
                 if (commodity == null) {
                     throw "商品不存在"
                 }
+                // 判断是件还是个
                 var stockNum = orderItemList[i].num
                 if (orderItemList[i].unit == "件") {
                     stockNum = orderItemList[i].num * orderItemList[i].specifications
@@ -236,38 +160,15 @@ class OrderS extends Service {
 
             // 商品条目数据处理
             for (var i = 0; i < data.orderItemList.length; i++) {
-                if (data.orderItemList[i].name == null || data.orderItemList[i].name === "") {
-                    throw "商品名字为空"
+
+                var orderItem = data.orderItemList[i];
+                const err = IsEmputy.isEmputyOrderS2(orderItem)
+                if (err != "") {
+                    throw err
                 }
-                if (data.orderItemList[i].commodity_code == null || data.orderItemList[i].commodity_code === "") {
-                    throw "订单商品编码为空"
-                }
-                if (data.orderItemList[i].bar_code == null || data.orderItemList[i].bar_code === "") {
-                    throw "商品条形码为空"
-                }
-                if (data.orderItemList[i].num == null || data.orderItemList[i].num === 0) {
-                    throw "订单商品数量为空"
-                }
-                if (data.orderItemList[i].price == null || data.orderItemList[i].price == "" || data.orderItemList[i].money == "0.00") {
-                    throw "订单商品单价为空"
-                }
-                if (data.orderItemList[i].money == null || data.orderItemList[i].money == "" || data.orderItemList[i].money == "0.00") {
-                    throw "订单商品金额为空"
-                }
-                // 组合数据
-                const orderItem = {
-                    code: Util.uuidCode(),
-                    order_code: data.code,
-                    commodity_code: data.orderItemList[i].commodity_code,
-                    bar_code: data.orderItemList[i].bar_code,
-                    num: data.orderItemList[i].num,
-                    unit: data.orderItemList[i].unit,
-                    price: data.orderItemList[i].price,
-                    name: data.orderItemList[i].name,
-                    specifications: data.orderItemList[i].specifications,
-                    money: data.orderItemList[i].money,
-                    create_time: data.create_time,
-                }
+
+                orderItem.code = Util.uuidCode();
+
                 var stockNum = orderItem.num
                 if (orderItem.unit == "件") {
                     stockNum = orderItem.num * orderItem.specifications
@@ -301,23 +202,12 @@ class OrderS extends Service {
                     throw "添加失败"
                 }
             }
-
+            data.price_up = Util.digitUppercase(data.price)
+            orderItemList = data.orderItemList;
+            // 先删除后面再加上
+            delete data.orderItemList;
             // 数据库插入条目数据
-            result = await conn.update('orders', {
-                code: data.code,
-                customer_code: data.customer_code,
-                order_write_code: data.order_write_code,
-                num: data.num,
-                order_num_code: data.order_num_code,
-                price_up: Util.digitUppercase(data.price),
-                price: data.price,
-                state: data.state,
-                real_price: data.real_price,
-                shop: data.shop,
-                create_time: data.create_time,
-                is_del: data.is_del,
-                posting_time: data.posting_time
-            }, {
+            result = await conn.update('orders', data, {
                 where: {
                     code: data.code
                 }
@@ -326,10 +216,10 @@ class OrderS extends Service {
             if (result.affectedRows == 0) {
                 throw "修改失败"
             }
-            orders.orderItemList = data.orderItemList
+            data.orderItemList = orderItemList
             await conn.commit(); // 提交事务
-            this.app.logger.info('[登录用户]:' + userCode + '[OrderS.update]:' + JSON.stringify(orders));
-            return BodyData.successData(orders);
+            this.app.logger.info('[登录用户]:' + userCode + '[OrderS.update]:' + JSON.stringify(data));
+            return BodyData.successData(data);
         } catch (err) {
             this.app.logger.error(err);
             // error, rollback

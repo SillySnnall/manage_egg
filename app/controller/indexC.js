@@ -32,60 +32,62 @@ class IndexC extends Controller {
   async acSwitch(data, userCode) {
     switch (data.ac) {
       case "register": // 注册
-        return await this.ctx.service.usersS.add(data, userCode);
+        return await this.ctx.service.usersS.add(data.data, userCode);
       case "login": // 登陆
-        return await this.ctx.service.usersS.login(data, userCode);
+        return await this.ctx.service.usersS.login(data.data, userCode);
 
       case "addCustomer": // 添加客户
-        return await this.ctx.service.customerS.add(data, userCode);
+        return await this.ctx.service.customerS.add(data.data, userCode);
       case "updateCustomer": // 修改客户
-        return await this.ctx.service.customerS.update(data, userCode);
+        return await this.ctx.service.customerS.update(data.data, userCode);
       case "deleteCustomer": // 删除客户
-        return await this.ctx.service.customerS.delete(data, userCode);
+        return await this.ctx.service.customerS.delete(data.data, userCode);
       case "findCustomer": // 查询客户
-        return await this.ctx.service.customerS.find(data, userCode);
+        return await this.ctx.service.customerS.find(data.data, userCode);
 
       case "addCommodity": // 添加商品
-        return await this.ctx.service.commodityS.add(data, userCode);
+        return await this.ctx.service.commodityS.add(data.data, userCode);
       case "updateCommodity": // 修改商品
-        return await this.ctx.service.commodityS.update(data, userCode);
+        return await this.ctx.service.commodityS.update(data.data, userCode);
       case "deleteCommodity": // 删除商品
-        return await this.ctx.service.commodityS.delete(data, userCode);
+        return await this.ctx.service.commodityS.delete(data.data, userCode);
       case "findCommodity": // 查询商品
-        return await this.ctx.service.commodityS.find(data, userCode);
+        return await this.ctx.service.commodityS.find(data.data, userCode);
 
       case "addOrder": // 添加订单
-        return await this.ctx.service.orderS.add(data, userCode);
+        return await this.ctx.service.orderS.add(data.data, userCode);
       case "findOrder": // 查询订单
-        return await this.ctx.service.orderS.find(data, userCode);
+        return await this.ctx.service.orderS.find(data.data, userCode);
       case "deleteOrder": // 删除订单
-        return await this.ctx.service.orderS.delete(data, userCode);
+        return await this.ctx.service.orderS.delete(data.data, userCode);
       case "updateOrder": // 修改订单
-        return await this.ctx.service.orderS.update(data, userCode);
+        return await this.ctx.service.orderS.update(data.data, userCode);
       case "findOrderItem": // 查询订单条目
-        return await this.ctx.service.orderS.findOrderItem(data, userCode);
+        return await this.ctx.service.orderS.findOrderItem(data.data, userCode);
       case "stateChange": // 更改销售单状态
-        return await this.ctx.service.orderS.stateChange(data, userCode);
+        return await this.ctx.service.orderS.stateChange(data.data, userCode);
       case "getPrintOrders": // 获取打印订单数据
-        return await this.ctx.service.orderS.getPrintOrders(data, userCode);
+        return await this.ctx.service.orderS.getPrintOrders(data.data, userCode);
       case "findDateOrder": // 按时间查询过账订单
-        return await this.ctx.service.orderS.findDateOrder(data, userCode);
+        return await this.ctx.service.orderS.findDateOrder(data.data, userCode);
 
 
       case "addBackOrder": // 添加退货单
-        return await this.ctx.service.backOrderS.add(data, userCode);
+        return await this.ctx.service.backOrderS.add(data.data, userCode);
       case "findBackOrder": // 查询退货单
-        return await this.ctx.service.backOrderS.find(data, userCode);
+        return await this.ctx.service.backOrderS.find(data.data, userCode);
       case "deleteBackOrder": // 删除退货单
-        return await this.ctx.service.backOrderS.delete(data, userCode);
+        return await this.ctx.service.backOrderS.delete(data.data, userCode);
       case "updateBackOrder": // 修改退货单
-        return await this.ctx.service.backOrderS.update(data, userCode);
+        return await this.ctx.service.backOrderS.update(data.data, userCode);
       case "findBackOrderItem": // 查询退货单条目
-        return await this.ctx.service.backOrderS.findOrderItem(data, userCode);
+        return await this.ctx.service.backOrderS.findOrderItem(data.data, userCode);
       case "stateBackChange": // 更改退货单状态
-        return await this.ctx.service.backOrderS.stateChange(data, userCode);
+        return await this.ctx.service.backOrderS.stateChange(data.data, userCode);
+      case "getPrintBackOrders": // 获取打印退货单数据
+        return await this.ctx.service.backOrderS.getPrintOrders(data.data, userCode);
       case "findBackDateOrder": // 按时间查询过账退货单
-        return await this.ctx.service.backOrderS.findDateOrder(data, userCode);
+        return await this.ctx.service.backOrderS.findDateOrder(data.data, userCode);
     }
   }
 
