@@ -108,6 +108,8 @@ class BackOrderS extends Service {
                 }
 
                 orderItem.code = Util.uuidCode();
+                orderItem.order_code = data.code
+                orderItem.create_time = data.create_time
 
                 // 数据库插入条目数据
                 var results = await conn.insert('back_order_item', orderItem);

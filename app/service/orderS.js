@@ -168,7 +168,10 @@ class OrderS extends Service {
                 }
 
                 orderItem.code = Util.uuidCode();
+                orderItem.order_code = data.code
+                orderItem.create_time = data.create_time
 
+                // 判断是件还是个
                 var stockNum = orderItem.num
                 if (orderItem.unit == "件") {
                     stockNum = orderItem.num * orderItem.specifications
