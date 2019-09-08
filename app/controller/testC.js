@@ -8,8 +8,10 @@ class TestC extends Controller {
 
     async index() {
 
-
-
+        this.ctx.body = {
+            uuid: Util.uuidCode(),
+            time: Date.now()
+        }
         // for (var i = 0; i < 100; i++) {
         //     this.ctx.service.customerS.add({
         //         shop: "商店" + i,
